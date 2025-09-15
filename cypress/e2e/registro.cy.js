@@ -1,35 +1,45 @@
 // Evitar que errores de React rompan los tests
-Cypress.on('uncaught:exception', (err, runnable) => {
-  return false;
-});
+Cypress.on('uncaught:exception', () => false);
 
 describe('Registro de usuario nuevo', () => {
   beforeEach(() => {
-    cy.visit('https://ticketazo.com.ar/auth/registerUser')
+    // Usando baseUrl de cypress.config.js
+    cy.visit('/auth/registerUser');
   });
 
   it('Debe permitir registrar un usuario nuevo con datos válidos', () => {
-    cy.get('input[name="nombres"]').type('Tester');
+    const password = 'Password124*';
+    const uniqueDni = `${Date.now()}`.slice(-8);
+    const uniqueEmail = `usuarioNuevo${Date.now()}@ejemplo.com`;
+
+    // Datos personales
+    cy.get('input[name="nombres"]').type('Usuario');
     cy.get('input[name="apellido"]').type('Nuevo');
-    cy.get('input[name="telefono"]').type('1234567890');
-    cy.get('input[name="dni"]').type('35184645'); // un DNI válido y único
+    cy.get('input[name="telefono"]').type('261688542');
+    cy.get('input[name="dni"]').type(uniqueDni);
 
-    cy.get('[data-cy="select-provincia"]').click();
-    cy.contains('Santa Fe').click();
+    // Provincia y localidad
+    cy.get('[data-cy="select-provincia"]').click().should('be.visible');
+    cy.contains('Mendoza').click();
 
-    cy.get('[data-cy="select-localidad"]').click().type('Rosario');
-    cy.contains('.cursor-pointer', 'Rosario').click();
+    cy.get('[data-cy="select-localidad"]').click().type('Mendoza');
+    cy.contains('.cursor-pointer', 'Mendoza').click();
 
-    cy.contains('dd').type('10');
-    cy.contains('mm').type('08');
-    cy.contains('aaaa').type('1995');
+    // Fecha de nacimiento
+    cy.get('input[placeholder="dd"]').type('25');
+    cy.get('input[placeholder="mm"]').type('05');
+    cy.get('input[placeholder="aaaa"]').type('1980');
 
-    cy.get('input[name="email"]').type('usuarioNuevo@ejemplo.com');
-    cy.get('input[name="confirmarEmail"]').type('usuarioNuevo@ejemplo.com');
-    cy.get('input[name="password"]').type('ContraseñaSegura123');
-    cy.get('[data-cy="input-repetir-password"]').type('ContraseñaSegura123');
-    cy.get('button[type="submit"]').click();
+    // Credenciales
+    cy.get('input[name="email"]').type(uniqueEmail);
+    cy.get('input[name="confirmarEmail"]').type(uniqueEmail);
+    cy.get('input[name="password"]').type(password);
+    cy.get('[data-cy="input-repetir-password"]').type(password);
 
-    cy.contains('Registro exitoso').should('be.visible');
+    // Enviar formulario
+    cy.contains('button', 'Registrarse').click();
+
+    // Validación post-envío
+    cy.contains(/registro exitoso/i).should('be.visible');
   });
 });

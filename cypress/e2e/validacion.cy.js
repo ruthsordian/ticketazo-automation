@@ -1,35 +1,44 @@
 // Evitar que errores de React rompan los tests
-Cypress.on('uncaught:exception', (err, runnable) => {
-  return false;
-});
+Cypress.on('uncaught:exception', () => false);
 
 describe('Validar que no se repitan DNI y no deje registrar', () => {
   beforeEach(() => {
-    cy.visit('https://ticketazo.com.ar/auth/registerUser')
+    cy.visit('/auth/registerUser'); // usa baseUrl de cypress.config.js
   });
 
   it('No debe permitir registrar con un DNI ya existente', () => {
+    const password = 'Password123*';
+
+    // Datos personales
     cy.get('input[name="nombres"]').type('Tester');
     cy.get('input[name="apellido"]').type('Duplicado');
-    cy.get('input[name="telefono"]').type('1234567890');
-    cy.get('input[name="dni"]').type('12345678'); // DNI ya registrado
+    cy.get('input[name="telefono"]').type('2616885427');
 
-    cy.get('[data-cy="select-provincia"]').click();
-    cy.contains('Córdoba').click();
+    // DNI fijo ya registrado
+    cy.get('input[name="dni"]').type('20858801');
 
-    cy.get('[data-cy="select-localidad"]').click().type('Córdoba');
-    cy.contains('.cursor-pointer', 'Córdoba').click();
+    // Provincia y localidad
+    cy.get('[data-cy="select-provincia"]').click().should('be.visible');
+    cy.contains('Mendoza').click();
 
-    cy.contains('dd').type('07');
-    cy.contains('mm').type('12');
-    cy.contains('aaaa').type('1995');
+    cy.get('[data-cy="select-localidad"]').click().type('Mendoza');
+    cy.contains('.cursor-pointer', 'Mendoza').click();
 
+    // Fecha de nacimiento
+    cy.get('input[placeholder="dd"]').type('25');
+    cy.get('input[placeholder="mm"]').type('05');
+    cy.get('input[placeholder="aaaa"]').type('1980');
+
+    // Credenciales
     cy.get('input[name="email"]').type('duplicado@ejemplo.com');
     cy.get('input[name="confirmarEmail"]').type('duplicado@ejemplo.com');
-    cy.get('input[name="password"]').type('ContraseñaSegura123');
-    cy.get('[data-cy="input-repetir-password"]').type('ContraseñaSegura123');
-    cy.get('button[type="submit"]').click();
+    cy.get('input[name="password"]').type(password);
+    cy.get('[data-cy="input-repetir-password"]').type(password);
 
-    cy.contains('Ya existe un usuario registrado con ese DNI').should('be.visible');
+    // Enviar formulario
+    cy.contains('button', 'Registrarse').click();
+
+    // Validar mensaje de error
+    cy.contains(/usuario registrado con ese dni/i).should('be.visible');
   });
 });

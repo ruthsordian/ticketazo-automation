@@ -5,9 +5,9 @@ Cypress.on('uncaught:exception', () => false);
 const typeWhenEnabled = (selector, text) => {
   cy.get(selector, { timeout: 20000 })
     .should('be.visible')
-    .and('not.be.disabled')                       // <— clave para evitar tu error
-    .click({ force: true })
-    .clear({ force: true })
+    .and('not.be.disabled')
+    .click()
+    .clear()
     .type(text, { delay: 0 });
 };
 
@@ -20,29 +20,24 @@ describe('Registro de usuario nuevo', () => {
   });
 
   it('Completa y envía el formulario', () => {
-    const dni = `${Date.now()}`.slice(-8);                 // DNI único por corrida
+    const dni = `${Date.now()}`.slice(-8); // DNI único
     const email = `qa+${Date.now()}@ejemplo.com`;
-    const password = 'ContraseniaSegura123';
+    const password = 'Password123*';
 
-    // Texto
-    typeWhenEnabled('input[name="nombres"]', 'Tester');
+    // Datos personales
+    typeWhenEnabled('input[name="nombres"]', 'Usuario');
     typeWhenEnabled('input[name="apellido"]', 'Nuevo');
-    typeWhenEnabled('input[name="telefono"]', '1122334455');
-
-    // DNI — usa el data-cy exacto de tu captura
+    typeWhenEnabled('input[name="telefono"]', '2616885427');
     typeWhenEnabled('[data-cy="input-dni"]', dni);
 
-    // Provincia y localidad (mismo patrón que tu código original)
-    cy.get('[data-cy="select-provincia"]').click({ force: true });
-    cy.contains('Córdoba').click({ force: true });                 // cambia si querés otra
+    // Provincia y localidad
+ 
 
-    cy.get('[data-cy="select-localidad"]').click({ force: true }).type('Córdoba');
-    cy.contains('.cursor-pointer', 'Córdoba').click({ force: true });
 
-    // Fecha
-    typeWhenEnabled('input[placeholder="dd"]', '10');
-    typeWhenEnabled('input[placeholder="mm"]', '08');
-    typeWhenEnabled('input[placeholder="aaaa"]', '1995');
+    // Fecha de nacimiento
+    typeWhenEnabled('input[placeholder="dd"]', '25');
+    typeWhenEnabled('input[placeholder="mm"]', '05');
+    typeWhenEnabled('input[placeholder="aaaa"]', '1980');
 
     // Credenciales
     typeWhenEnabled('input[name="email"]', email);
@@ -50,8 +45,10 @@ describe('Registro de usuario nuevo', () => {
     typeWhenEnabled('input[name="password"]', password);
     typeWhenEnabled('[data-cy="input-repetir-password"]', password);
 
-    // Enviar
-    cy.contains('button', 'Registrarse').click({ force: true });
+    // Enviar formulario
+    cy.contains('button', 'Registrarse').click();
+
+    // Validación post-envío (ajustar según mensaje real de Ticketazo)
+    cy.contains(/registro exitoso/i).should('be.visible');
   });
 });
-
